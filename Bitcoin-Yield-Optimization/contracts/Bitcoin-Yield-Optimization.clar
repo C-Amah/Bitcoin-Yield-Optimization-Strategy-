@@ -443,3 +443,41 @@
   )
 )
 
+;; Referral Program
+(define-map referrals
+  {
+    referrer: principal,
+    referee: principal
+  }
+  {
+    is-active: bool,
+    reward: uint
+  }
+)
+
+(define-public (refer-user
+  (referee principal)
+)
+  (begin
+    (asserts! (is-eq tx-sender CONTRACT-OWNER) ERR-UNAUTHORIZED)
+    
+    (map-set referrals 
+      { referrer: tx-sender, referee: referee }
+      { is-active: true, reward: u10 } ;; Example reward
+    )
+    
+    (ok true)
+  )
+)
+
+;; Time-Locked Deposits
+(define-map time-locked-deposits
+  {
+    user: principal,
+    platform-id: uint
+  }
+  {
+    amount: uint,
+    unlock-time: uint
+  }
+)
