@@ -481,3 +481,40 @@
     unlock-time: uint
   }
 )
+
+(define-public (lock-deposit
+  (amount uint)
+  (platform-id uint)
+  (duration uint)
+)
+  (begin
+    (try! (stx-transfer? 
+      amount 
+      tx-sender 
+      (as-contract tx-sender)
+    ))
+    
+    (map-set time-locked-deposits
+      { user: tx-sender, platform-id: platform-id }
+      {
+        amount: amount,
+        unlock-time: (+ stacks-block-height duration)
+      }
+    )
+    
+    (ok true)
+  )
+)
+
+;; User Notifications
+(define-map user-notifications
+  {
+    user: principal,
+    notification-id: uint
+  }
+  {
+    message: (string-ascii 200),
+    is-read: bool,
+    created-at: uint
+  }
+)
