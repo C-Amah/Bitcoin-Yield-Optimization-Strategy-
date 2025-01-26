@@ -119,5 +119,67 @@
   )
 )
 
+;; Advanced Withdrawal Mechanism
+(define-public (withdraw-funds 
+  (amount uint)
+  (platform-id uint)
+)
+  (begin
+    ;; Validate withdrawal
+    (asserts! (not (var-get emergency-mode)) ERR-EMERGENCY-LOCK)
+    
+    (let 
+      (
+        (user-position (unwrap! 
+          (map-get? user-positions { user: tx-sender }) 
+          ERR-UNAUTHORIZED
+        ))
+        (current-platform (unwrap! 
+          (map-get? yield-platforms { platform-id: platform-id }) 
+          ERR-UNAUTHORIZED
+        ))
+        
+        ;; Calculate withdrawal with fee
+        (fee (/ (* amount (var-get protocol-fee-percentage)) u100))
+        (net-withdrawal (- amount fee))
+      )
+      
+      ;; Transfer funds back
+      (try! (stx-transfer? 
+        net-withdrawal 
+        (as-contract tx-sender) 
+        tx-sender
+      ))
+      
+      ;; Update platform and user state
+      (map-set yield-platforms 
+        { platform-id: platform-id }
+        (merge current-platform 
+          { 
+            total-liquidity: (- 
+              (get total-liquidity current-platform) 
+              amount 
+            )
+          }
+        )
+      )
+      
+      (map-set user-positions 
+        { user: tx-sender }
+        (merge user-position 
+          { 
+            total-deposited: (- 
+              (get total-deposited user-position) 
+              amount 
+            )
+          }
+        )
+      )
+      
+      (ok true)
+    )
+  )
+)
+
 
 
