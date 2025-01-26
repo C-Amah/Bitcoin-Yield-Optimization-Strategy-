@@ -299,3 +299,48 @@
     expires-at: uint
   }
 )
+
+;; Whitelisting Function
+(define-public (add-to-whitelist
+  (user principal)
+  (kyc-level uint)
+)
+  (begin
+    (asserts! (is-eq tx-sender CONTRACT-OWNER) ERR-UNAUTHORIZED)
+    
+    (map-set user-whitelist 
+      { user: user }
+      {
+        is-verified: true,
+        kyc-level: kyc-level,
+        verification-timestamp: stacks-block-height
+      }
+    )
+    
+    (ok true)
+  )
+)
+
+;; Liquidation Protection Purchase
+(define-public (purchase-liquidation-protection
+  (protection-amount uint)
+  (duration uint)
+)
+  (begin
+    (try! (stx-transfer? 
+      protection-amount 
+      tx-sender 
+      (as-contract tx-sender)
+    ))
+    
+    (map-set liquidation-protection
+      { user: tx-sender }
+      {
+        protection-amount: protection-amount,
+        expires-at: (+ stacks-block-height duration)
+      }
+    )
+    
+    (ok true)
+  )
+)
