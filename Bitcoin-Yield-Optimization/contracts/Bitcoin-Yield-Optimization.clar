@@ -210,3 +210,26 @@
     current-best
   )
 )
+
+;; Distribute Funds Across Platforms
+(define-private (distribute-funds 
+  (total-amount uint)
+  (platform-id uint)
+  (allocation-percentage uint)
+)
+  (let 
+    (
+      (allocated-amount 
+        (/ (* total-amount allocation-percentage) u100)
+      )
+    )
+    ;; Implement cross-platform liquidity provision logic
+    (print { 
+      action: "distribute-funds", 
+      platform: platform-id, 
+      amount: allocated-amount 
+    })
+    
+    allocated-amount
+  )
+)
