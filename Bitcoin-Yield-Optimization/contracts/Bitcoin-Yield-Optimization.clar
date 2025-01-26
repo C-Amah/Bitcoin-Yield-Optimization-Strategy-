@@ -182,4 +182,31 @@
 )
 
 
+;; Risk Management
+(define-private (calculate-risk-adjusted-yield 
+  (platform-id uint)
+)
+  (let 
+    (
+      (platform (unwrap-panic 
+        (map-get? yield-platforms { platform-id: platform-id })
+      ))
+      (base-apy (get base-apy platform))
+      (risk-score (get risk-score platform))
+    )
+    
+    ;; Advanced yield calculation with risk adjustment
+    (/ (* base-apy (- u100 risk-score)) u100)
+  )
+)
 
+;; Select Best Performing Platform
+(define-private (select-best-platform 
+  (platform { platform-id: uint, apy: uint })
+  (current-best uint)
+)
+  (if (> (get apy platform) current-best)
+    (get platform-id platform)
+    current-best
+  )
+)
