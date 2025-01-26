@@ -420,3 +420,26 @@
     created-at: uint
   }
 )
+
+(define-public (vote-on-proposal
+  (proposal-id uint)
+)
+  (begin
+    (let ((proposal (unwrap! 
+      (map-get? governance-proposals { proposal-id: proposal-id }) 
+      ERR-UNAUTHORIZED
+    )))
+      (asserts! (get is-active proposal) ERR-UNAUTHORIZED)
+      
+      ;; Increment vote count
+      (map-set governance-proposals 
+        { proposal-id: proposal-id }
+        (merge proposal 
+          { vote-count: (+ (get vote-count proposal) u1) }
+        )
+      )
+    )
+    (ok true)
+  )
+)
+
