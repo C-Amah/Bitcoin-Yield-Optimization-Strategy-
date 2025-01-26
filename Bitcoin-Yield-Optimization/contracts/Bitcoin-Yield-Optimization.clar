@@ -233,3 +233,37 @@
     allocated-amount
   )
 )
+
+;; Security and Access Control Enhancements
+(define-constant MAX-ADMIN-ROLES u3)
+(define-constant ADMIN-THRESHOLD u2)
+
+;; New Roles and Permissions
+(define-map role-assignments
+  { 
+    user: principal,
+    role: uint 
+  }
+  {
+    is-active: bool,
+    assigned-by: principal,
+    assigned-at: uint
+  }
+)
+
+;; Upgradability and Versioning
+(define-data-var contract-version uint u2)
+(define-data-var upgrade-timestamp uint u0)
+
+;; Staking and Rewards Mechanism
+(define-map staking-rewards
+  {
+    user: principal,
+    platform-id: uint
+  }
+  {
+    total-staked: uint,
+    reward-rate: uint,
+    last-claim-time: uint
+  }
+)
