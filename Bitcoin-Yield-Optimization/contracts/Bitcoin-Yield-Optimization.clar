@@ -17,3 +17,37 @@
 (define-constant ERR-INVALID-ALLOCATION (err u103))
 (define-constant ERR-EMERGENCY-LOCK (err u104))
 
+
+;; State Variables
+(define-data-var emergency-mode bool false)
+(define-data-var total-locked-liquidity uint u0)
+(define-data-var protocol-fee-percentage uint u2)
+
+;; Platform Configuration
+(define-map yield-platforms 
+  { 
+    platform-id: uint 
+  }
+  {
+    name: (string-ascii 50),
+    base-apy: uint,
+    risk-score: uint,
+    total-liquidity: uint,
+    is-active: bool
+  }
+)
+
+;; User Position Tracking
+(define-map user-positions 
+  { 
+    user: principal 
+  }
+  {
+    total-deposited: uint,
+    current-yield: uint,
+    last-deposit-time: uint,
+    position-nft: uint
+  }
+)
+
+
