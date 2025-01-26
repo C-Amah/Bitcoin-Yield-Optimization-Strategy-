@@ -344,3 +344,79 @@
     (ok true)
   )
 )
+
+;; Constants for New Features
+(define-constant MIN-GOVERNANCE-VOTES u3)
+(define-constant EMERGENCY-WITHDRAWAL-FEE u5)
+
+;; Emergency Withdrawal Functionality
+(define-public (emergency-withdraw
+  (platform-id uint)
+)
+  (begin
+    (asserts! (var-get emergency-mode) ERR-EMERGENCY-LOCK)
+    
+    (let 
+      (
+        (user-position (unwrap! 
+          (map-get? user-positions { user: tx-sender }) 
+          ERR-UNAUTHORIZED
+        ))
+        (current-platform (unwrap! 
+          (map-get? yield-platforms { platform-id: platform-id }) 
+          ERR-UNAUTHORIZED
+        ))
+      )
+      
+      ;; Calculate total amount to withdraw
+      (let 
+        ((total-amount (get total-deposited user-position)))
+        
+        ;; Transfer funds back with emergency fee
+        (try! (stx-transfer? 
+          (- total-amount EMERGENCY-WITHDRAWAL-FEE) 
+          (as-contract tx-sender) 
+          tx-sender
+        ))
+        
+        ;; Update user position
+        (map-set user-positions 
+          { user: tx-sender }
+          (merge user-position 
+            { 
+              total-deposited: u0 
+            }
+          )
+        )
+        
+        ;; Update platform liquidity
+        (map-set yield-platforms 
+          { platform-id: platform-id }
+          (merge current-platform 
+            { 
+              total-liquidity: (- 
+                (get total-liquidity current-platform) 
+                total-amount
+              )
+            }
+          )
+        )
+      )
+    )
+    (ok true)
+  )
+)
+
+;; Governance Proposals
+(define-map governance-proposals
+  {
+    proposal-id: uint
+  }
+  {
+    proposer: principal,
+    description: (string-ascii 200),
+    vote-count: uint,
+    is-active: bool,
+    created-at: uint
+  }
+)
